@@ -1,0 +1,102 @@
+{
+  "dataset": "dmilush/shieldlm-prompt-injection",
+  "held_out_test_samples": 8125,
+  "binary_model": {
+    "pipeline_type": "LogisticRegression",
+    "test_accuracy": 0.9804,
+    "test_precision": 0.9766,
+    "test_recall": 0.9673,
+    "test_macro_f1": 0.9785,
+    "test_weighted_f1": 0.9804,
+    "test_roc_auc": 0.9967,
+    "false_positive_rate": 0.0125,
+    "false_negative_rate": 0.0327,
+    "latency_ms_per_sample": 0.1092,
+    "confusion_matrix": {
+      "tn": 5214,
+      "fp": 66,
+      "fn": 93,
+      "tp": 2752
+    }
+  },
+  "multiclass_model": {
+    "pipeline_type": "LogisticRegression",
+    "test_accuracy": 0.968,
+    "test_macro_f1": 0.9091,
+    "test_weighted_f1": 0.9692,
+    "classes": [
+      "benign",
+      "direct_injection",
+      "indirect_injection",
+      "jailbreak"
+    ],
+    "confusion_matrix": [
+      [
+        5205,
+        62,
+        1,
+        12
+      ],
+      [
+        83,
+        2367,
+        0,
+        84
+      ],
+      [
+        0,
+        0,
+        158,
+        0
+      ],
+      [
+        11,
+        7,
+        0,
+        135
+      ]
+    ],
+    "classification_report": {
+      "benign": {
+        "precision": 0.9822608039252689,
+        "recall": 0.9857954545454546,
+        "f1-score": 0.9840249550997259,
+        "support": 5280.0
+      },
+      "direct_injection": {
+        "precision": 0.9716748768472906,
+        "recall": 0.9340962904498816,
+        "f1-score": 0.9525150905432596,
+        "support": 2534.0
+      },
+      "indirect_injection": {
+        "precision": 0.9937106918238994,
+        "recall": 1.0,
+        "f1-score": 0.9968454258675079,
+        "support": 158.0
+      },
+      "jailbreak": {
+        "precision": 0.5844155844155844,
+        "recall": 0.8823529411764706,
+        "f1-score": 0.703125,
+        "support": 153.0
+      },
+      "accuracy": 0.968,
+      "macro avg": {
+        "precision": 0.8830154892530109,
+        "recall": 0.9505611715429517,
+        "f1-score": 0.9091276178776233,
+        "support": 8125.0
+      },
+      "weighted avg": {
+        "precision": 0.9716902223237188,
+        "recall": 0.968,
+        "f1-score": 0.9691575021107985,
+        "support": 8125.0
+      }
+    },
+    "latency_ms_per_sample": 0.1034
+  },
+  "timestamp": "2026-11-24T16:48:54Z",
+  "model_version": "1.0.0"
+}

@@ -1,0 +1,199 @@
+{
+  "dataset_name": "dmilush/shieldlm-prompt-injection",
+  "splits": {
+    "train": {
+      "sample_count": 37913,
+      "columns": [
+        "id",
+        "text",
+        "label_binary",
+        "label_category",
+        "label_intent",
+        "source",
+        "language",
+        "context",
+        "metadata"
+      ],
+      "missing_values": {
+        "id": 0,
+        "text": 0,
+        "label_binary": 0,
+        "label_category": 0,
+        "label_intent": 37175,
+        "source": 0,
+        "language": 0,
+        "context": 26023,
+        "metadata": 0
+      },
+      "empty_text_count": 0,
+      "binary_distribution": {
+        "0": 24638,
+        "1": 13275
+      },
+      "category_distribution": {
+        "benign": 24638,
+        "direct_injection": 11825,
+        "indirect_injection": 738,
+        "jailbreak": 712
+      },
+      "internal_text_duplicates": 0,
+      "top_sources": {
+        "alespalla/chatbot-instruction-prompts": 17368,
+        "spml/chatbot-prompt-injection": 11139,
+        "safeguard/prompt-injection": 5684,
+        "harelix/mixed-techniques-2024": 702,
+        "trustailab/in-the-wild-jailbreak-prompts": 702,
+        "yanismiraoui/prompt-injections": 670,
+        "injecagent/full_response/data_stealing/base": 387,
+        "jackhhao/jailbreak-classification": 376,
+        "deepset/prompt-injections": 375,
+        "injecagent/full_response/direct_harm/base": 351
+      },
+      "top_languages": {
+        "en": 37477,
+        "es": 97,
+        "fr": 96,
+        "it": 89,
+        "de": 78,
+        "pt": 71,
+        "ro": 3,
+        "ca": 2
+      }
+    },
+    "validation": {
+      "sample_count": 8124,
+      "columns": [
+        "id",
+        "text",
+        "label_binary",
+        "label_category",
+        "label_intent",
+        "source",
+        "language",
+        "context",
+        "metadata"
+      ],
+      "missing_values": {
+        "id": 0,
+        "text": 0,
+        "label_binary": 0,
+        "label_category": 0,
+        "label_intent": 7966,
+        "source": 0,
+        "language": 0,
+        "context": 5518,
+        "metadata": 0
+      },
+      "empty_text_count": 0,
+      "binary_distribution": {
+        "0": 5279,
+        "1": 2845
+      },
+      "category_distribution": {
+        "benign": 5279,
+        "direct_injection": 2534,
+        "indirect_injection": 158,
+        "jailbreak": 153
+      },
+      "internal_text_duplicates": 0,
+      "top_sources": {
+        "alespalla/chatbot-instruction-prompts": 3704,
+        "spml/chatbot-prompt-injection": 2446,
+        "safeguard/prompt-injection": 1159,
+        "yanismiraoui/prompt-injections": 159,
+        "trustailab/in-the-wild-jailbreak-prompts": 149,
+        "harelix/mixed-techniques-2024": 128,
+        "jackhhao/jailbreak-classification": 90,
+        "deepset/prompt-injections": 87,
+        "injecagent/full_response/direct_harm/base": 80,
+        "injecagent/full_response/data_stealing/base": 78
+      },
+      "top_languages": {
+        "en": 8010,
+        "fr": 29,
+        "de": 25,
+        "pt": 20,
+        "es": 20,
+        "it": 19,
+        "ro": 1
+      }
+    },
+    "test": {
+      "sample_count": 8125,
+      "columns": [
+        "id",
+        "text",
+        "label_binary",
+        "label_category",
+        "label_intent",
+        "source",
+        "language",
+        "context",
+        "metadata"
+      ],
+      "missing_values": {
+        "id": 0,
+        "text": 0,
+        "label_binary": 0,
+        "label_category": 0,
+        "label_intent": 7967,
+        "source": 0,
+        "language": 0,
+        "context": 5638,
+        "metadata": 0
+      },
+      "empty_text_count": 0,
+      "binary_distribution": {
+        "0": 5280,
+        "1": 2845
+      },
+      "category_distribution": {
+        "benign": 5280,
+        "direct_injection": 2534,
+        "indirect_injection": 158,
+        "jailbreak": 153
+      },
+      "internal_text_duplicates": 0,
+      "top_sources": {
+        "alespalla/chatbot-instruction-prompts": 3732,
+        "spml/chatbot-prompt-injection": 2328,
+        "safeguard/prompt-injection": 1275,
+        "harelix/mixed-techniques-2024": 157,
+        "trustailab/in-the-wild-jailbreak-prompts": 151,
+        "yanismiraoui/prompt-injections": 145,
+        "deepset/prompt-injections": 84,
+        "injecagent/full_response/data_stealing/base": 79,
+        "injecagent/full_response/direct_harm/base": 79,
+        "jackhhao/jailbreak-classification": 65
+      },
+      "top_languages": {
+        "en": 8020,
+        "pt": 29,
+        "fr": 19,
+        "de": 18,
+        "it": 18,
+        "es": 17,
+        "ro": 3,
+        "ca": 1
+      }
+    }
+  },
+  "global_checks": {
+    "total_samples": 54162,
+    "unique_texts": 54162,
+    "cross_split_overlapping_texts": 0,
+    "note": "Cross-split overlaps are tracked; standard splits preserved according to Hugging Face benchmark standards."
+  },
+  "label_mapping": {
+    "binary": {
+      "0": "BENIGN",
+      "1": "ATTACK"
+    },
+    "category": [
+      "benign",
+      "direct_injection",
+      "indirect_injection",
+      "jailbreak"
+    ]
+  }
+}

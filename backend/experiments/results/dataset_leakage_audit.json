@@ -1,0 +1,36 @@
+{
+  "audit_type": "Multi-tier Dataset Leakage and Provenance Audit",
+  "dataset": "dmilush/shieldlm-prompt-injection",
+  "total_samples": 54162,
+  "unique_text_count": 54162,
+  "tier_1_exact_duplicate_audit": {
+    "scope": "Exhaustive across all 54,162 records",
+    "exact_train_val_duplicates": 0,
+    "exact_train_test_duplicates": 0,
+    "exact_val_test_duplicates": 0,
+    "verbatim_leakage_rate": "0.00%",
+    "label_inconsistencies": 0,
+    "conclusion": "There are zero verbatim duplicate prompts between the training split and the held-out test split."
+  },
+  "tier_2_near_duplicate_sampled_audit": {
+    "scope": "Stochastic sample comparison (500 test prompts vs 5,000 train prompts)",
+    "method": "Tri-gram Jaccard Similarity (Threshold >= 0.85)",
+    "sample_test_size": 500,
+    "sample_train_pool_size": 5000,
+    "near_duplicates_detected_in_sample": 1,
+    "estimated_sample_near_duplicate_rate": "0.20%",
+    "important_limitation": "This was a sampled check (500 prompts), NOT an exhaustive pairwise check of all 8,125 test prompts against all 37,913 train prompts (which would require ~308 million comparisons)."
+  },
+  "tier_3_source_level_split_provenance": {
+    "total_unique_sources": 13,
+    "sources_shared_across_splits": 13,
+    "is_source_isolated_split": false,
+    "analysis": "ShieldLM was partitioned using random stratified sampling across classes, not by group-splitting across sources. Consequently, all 13 source repositories (e.g. alespalla/chatbot-instruction-prompts, spml/chatbot-prompt-injection) have examples distributed proportionally across train, validation, and test splits.",
+    "evaluation_implication": "Test prompts share stylistic provenance and domain distribution with training data. High benchmark test scores reflect in-distribution evaluation."
+  },
+  "tier_4_independent_external_dataset_evaluation": {
+    "candidate_datasets": ["S-Labs/prompt-injection-dataset", "cyberec/Prompt-injection-dataset"],
+    "status": "Candidate for future out-of-distribution transfer benchmarking",
+    "notes": "External evaluation is required to measure true out-of-distribution robustness against unseen adversarial corpora."
+  }
+}

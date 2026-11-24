@@ -1,0 +1,82 @@
+[
+  {
+    "document_id": "doc_malicious_a76aae",
+    "filename": "poisoned_resume_injection.pdf",
+    "total_chunks": 4,
+    "suspicious_chunks": 2,
+    "overall_action": "BLOCK",
+    "is_active_for_retrieval": false
+  },
+  {
+    "document_id": "doc_clean_6a99b4",
+    "filename": "annual_earnings_clean.pdf",
+    "total_chunks": 5,
+    "suspicious_chunks": 0,
+    "overall_action": "PASS",
+    "is_active_for_retrieval": true
+  },
+  {
+    "document_id": "doc_malicious_53ff83",
+    "filename": "poisoned_resume_injection.pdf",
+    "total_chunks": 4,
+    "suspicious_chunks": 2,
+    "overall_action": "BLOCK",
+    "is_active_for_retrieval": false
+  },
+  {
+    "document_id": "doc_clean_17bb61",
+    "filename": "annual_earnings_clean.pdf",
+    "total_chunks": 5,
+    "suspicious_chunks": 0,
+    "overall_action": "PASS",
+    "is_active_for_retrieval": true
+  },
+  {
+    "document_id": "doc_malicious_2ee71b",
+    "filename": "poisoned_resume_injection.pdf",
+    "total_chunks": 4,
+    "suspicious_chunks": 2,
+    "overall_action": "BLOCK",
+    "is_active_for_retrieval": false
+  },
+  {
+    "document_id": "doc_clean_484dd2",
+    "filename": "annual_earnings_clean.pdf",
+    "total_chunks": 5,
+    "suspicious_chunks": 0,
+    "overall_action": "PASS",
+    "is_active_for_retrieval": true
+  },
+  {
+    "document_id": "doc_malicious_2a071c",
+    "filename": "poisoned_resume_injection.pdf",
+    "total_chunks": 4,
+    "suspicious_chunks": 2,
+    "overall_action": "BLOCK",
+    "is_active_for_retrieval": false
+  },
+  {
+    "document_id": "doc_clean_eca6fa",
+    "filename": "annual_earnings_clean.pdf",
+    "total_chunks": 5,
+    "suspicious_chunks": 0,
+    "overall_action": "PASS",
+    "is_active_for_retrieval": true
+  },
+  {
+    "document_id": "doc_malicious_435877",
+    "filename": "poisoned_resume_injection.pdf",
+    "total_chunks": 4,
+    "suspicious_chunks": 2,
+    "overall_action": "BLOCK",
+    "is_active_for_retrieval": false
+  },
+  {
+    "document_id": "doc_clean_f3e84b",
+    "filename": "annual_earnings_clean.pdf",
+    "total_chunks": 5,
+    "suspicious_chunks": 0,
+    "overall_action": "PASS",
+    "is_active_for_retrieval": true
+  }
+]

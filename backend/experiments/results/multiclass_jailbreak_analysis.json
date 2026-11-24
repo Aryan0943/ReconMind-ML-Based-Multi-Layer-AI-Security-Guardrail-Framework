@@ -1,0 +1,71 @@
+{
+  "classes": [
+    "benign",
+    "direct_injection",
+    "indirect_injection",
+    "jailbreak"
+  ],
+  "overall_multiclass_metrics": {
+    "test_accuracy": 0.9680,
+    "macro_f1": 0.9091,
+    "weighted_f1": 0.9692
+  },
+  "confusion_matrix": [
+    [
+      5205,
+      62,
+      1,
+      12
+    ],
+    [
+      83,
+      2367,
+      0,
+      84
+    ],
+    [
+      0,
+      0,
+      158,
+      0
+    ],
+    [
+      11,
+      7,
+      0,
+      135
+    ]
+  ],
+  "jailbreak_verified_metrics": {
+    "support_in_held_out_test": 153,
+    "percentage_of_test_split": "1.88%",
+    "true_positives": 135,
+    "false_negatives": 18,
+    "false_positives": 96,
+    "total_predicted_as_jailbreak": 231,
+    "exact_precision": 0.5844155844155844,
+    "exact_recall": 0.8823529411764706,
+    "exact_f1_score": 0.703125,
+    "reported_precision_explanation": {
+      "recalculated_precision": "58.44% (135 TP / 231 Total Pred)",
+      "validation_split_reference": "66.67% (138 TP / 207 Total Pred on validation split)",
+      "previous_draft_mismatch_origin": "The previously reported 68.4% precision and 91.5% recall came from an interim evaluation run with an earlier feature extraction parameter setting. The verified ground-truth on the final serialized pipeline is Precision: 58.44%, Recall: 88.24%, F1: 0.7031."
+    },
+    "where_true_jailbreaks_went": {
+      "classified_correctly_as_jailbreak": 135,
+      "misclassified_as_benign": 11,
+      "misclassified_as_direct_injection": 7,
+      "misclassified_as_indirect_injection": 0
+    },
+    "where_false_jailbreaks_came_from": {
+      "from_direct_injection_actual_attacks": 84,
+      "from_benign_false_alarms": 12,
+      "from_indirect_injection": 0
+    }
+  },
+  "root_cause_analysis": {
+    "class_imbalance": "Jailbreak is heavily minority: only 153 out of 8,125 test samples (1.88%) and 712 out of 37,913 train samples (1.87%). Because class_weight='balanced' was applied to protect against missing attacks, the model assigns ~13x higher weight to jailbreak errors during training, driving recall up to 88.24% while causing precision to be 58.44%.",
+    "semantic_boundary_overlap": "87.5% of false positives for jailbreak (84 out of 96) come from direct_injection prompts containing persona manipulation and roleplay indicators. Only 12 out of 5,280 benign prompts were misclassified as jailbreak (0.22% benign FPR).",
+    "security_guardrail_impact": "Because the DefenseManager issues an immediate BLOCK action for both direct_injection and jailbreak, taxonomic boundary overlap between these two attack types does NOT cause a security bypass."
+  }
+}

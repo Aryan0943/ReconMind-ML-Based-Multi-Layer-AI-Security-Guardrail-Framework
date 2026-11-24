@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-11-25 00:50:29",
+  "hardware": {
+    "cpu": "AMD Ryzen 5 5600H with Radeon Graphics (3.30 GHz, 6 Cores, 12 Threads)",
+    "ram": "16.0 GB",
+    "os": "Windows 11 Home"
+  },
+  "cold_start": {
+    "cold_start_load_ms": 648.29
+  },
+  "layer_latencies": {
+    "layer1_input_defense": {
+      "mean_ms": 5.921,
+      "median_ms": 5.558,
+      "p95_ms": 8.3,
+      "p99_ms": 12.149
+    },
+    "layer2_memory_defense": {
+      "mean_ms": 5.337,
+      "median_ms": 5.277,
+      "p95_ms": 6.619,
+      "p99_ms": 9.409
+    },
+    "layer3_retrieval_defense": {
+      "mean_ms": 5.54,
+      "median_ms": 5.41,
+      "p95_ms": 6.761,
+      "p99_ms": 10.069
+    },
+    "layer4_tool_defense": {
+      "mean_ms": 0.491,
+      "median_ms": 0.412,
+      "p95_ms": 0.923,
+      "p99_ms": 1.106
+    },
+    "layer5_output_defense": {
+      "mean_ms": 0.507,
+      "median_ms": 0.391,
+      "p95_ms": 1.193,
+      "p99_ms": 2.662
+    }
+  },
+  "concurrency_benchmarks": {
+    "concurrency_1": {
+      "concurrency": 1,
+      "total_requests": 100,
+      "total_elapsed_sec": 0.604,
+      "throughput_rps": 165.6,
+      "latency_mean_ms": 5.958,
+      "latency_median_ms": 5.826,
+      "latency_p95_ms": 7.184,
+      "latency_p99_ms": 9.2,
+      "peak_memory_mb": 185.0,
+      "avg_cpu_percent": 15.0
+    },
+    "concurrency_5": {
+      "concurrency": 5,
+      "total_requests": 100,
+      "total_elapsed_sec": 0.482,
+      "throughput_rps": 207.34,
+      "latency_mean_ms": 23.499,
+      "latency_median_ms": 23.442,
+      "latency_p95_ms": 34.372,
+      "latency_p99_ms": 38.076,
+      "peak_memory_mb": 185.0,
+      "avg_cpu_percent": 15.0
+    },
+    "concurrency_10": {
+      "concurrency": 10,
+      "total_requests": 100,
+      "total_elapsed_sec": 0.546,
+      "throughput_rps": 183.07,
+      "latency_mean_ms": 51.107,
+      "latency_median_ms": 50.433,
+      "latency_p95_ms": 85.648,
+      "latency_p99_ms": 124.202,
+      "peak_memory_mb": 185.0,
+      "avg_cpu_percent": 15.0
+    },
+    "concurrency_25": {
+      "concurrency": 25,
+      "total_requests": 100,
+      "total_elapsed_sec": 0.474,
+      "throughput_rps": 210.86,
+      "latency_mean_ms": 77.514,
+      "latency_median_ms": 71.741,
+      "latency_p95_ms": 150.215,
+      "latency_p99_ms": 180.166,
+      "peak_memory_mb": 185.0,
+      "avg_cpu_percent": 15.0
+    }
+  }
+}

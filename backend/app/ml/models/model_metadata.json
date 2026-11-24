@@ -1,0 +1,83 @@
+{
+  "dataset": "dmilush/shieldlm-prompt-injection",
+  "held_out_test_samples": 8125,
+  "binary_model": {
+    "pipeline_type": "LogisticRegression",
+    "test_accuracy": 0.9804,
+    "test_precision": 0.9766,
+    "test_recall": 0.9673,
+    "test_macro_f1": 0.9785,
+    "test_weighted_f1": 0.9804,
+    "test_roc_auc": 0.9967,
+    "false_positive_rate": 0.0125,
+    "false_negative_rate": 0.0327,
+    "latency_ms_per_sample": 0.1409,
+    "confusion_matrix": {
+      "tn": 5214,
+      "fp": 66,
+      "fn": 93,
+      "tp": 2752
+    }
+  },
+  "multiclass_model": {
+    "pipeline_type": "LogisticRegression",
+    "test_accuracy": 0.9680,
+    "test_macro_f1": 0.9091,
+    "test_weighted_f1": 0.9692,
+    "classes": [
+      "benign",
+      "direct_injection",
+      "indirect_injection",
+      "jailbreak"
+    ],
+    "confusion_matrix": [
+      [5205, 62, 1, 12],
+      [83, 2367, 0, 84],
+      [0, 0, 158, 0],
+      [11, 7, 0, 135]
+    ],
+    "classification_report": {
+      "benign": {
+        "precision": 0.9823,
+        "recall": 0.9858,
+        "f1-score": 0.9840,
+        "support": 5280
+      },
+      "direct_injection": {
+        "precision": 0.9717,
+        "recall": 0.9341,
+        "f1-score": 0.9525,
+        "support": 2534
+      },
+      "indirect_injection": {
+        "precision": 0.9937,
+        "recall": 1.0000,
+        "f1-score": 0.9968,
+        "support": 158
+      },
+      "jailbreak": {
+        "precision": 0.5844,
+        "recall": 0.8824,
+        "f1-score": 0.7031,
+        "support": 153
+      }
+    },
+    "jailbreak_audit_notes": {
+      "support": 153,
+      "true_positives": 135,
+      "false_negatives": 18,
+      "total_predicted_as_jailbreak": 231,
+      "false_positives": 96,
+      "exact_recall": 0.882353,
+      "exact_precision": 0.584416,
+      "exact_f1": 0.703125,
+      "fp_breakdown": {
+        "from_direct_injection": 84,
+        "from_benign": 12,
+        "from_indirect_injection": 0
+      }
+    }
+  },
+  "timestamp": "2026-11-25T00:18:00Z",
+  "model_version": "1.0.0"
+}
