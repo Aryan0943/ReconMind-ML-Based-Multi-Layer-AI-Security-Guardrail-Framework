@@ -1,12 +1,40 @@
-from typing import Dict, Any, Tuple
-from app.schemas.responses import SecurityScanResponse
+from typing import Dict, Any, Tuple, List
+from app.schemas.responses import SecurityScanResponse, Finding
+
+# Finding types that are ALWAYS mandatory — they cannot be bypassed by any policy toggle.
+MANDATORY_BLOCK_TYPES = frozenset([
+    # Fail-closed ML availability sentinel — must always block
+    "ml_service_unavailable",
+])
+
+# Finding types that are mandatory-block ONLY on the tool layer
+MANDATORY_TOOL_TYPES = frozenset([
+    "unauthorized_tool",
+    "insufficient_permissions",
+    "path_traversal",
+    "unsafe_expression",
+    "expression_too_long",
+])
+
 
 class PolicyEngine:
     """
     Enforces centralized governance policies across all five defense layers.
-    Determines final PASS / SANITIZE / BLOCK actions based on findings,
+    Determines final PASS / SANITIZE / BLOCK / QUARANTINE actions based on findings,
     layer-specific risk policies, and confidence thresholds.
+
+    BUG FIX (B): Policy check order corrected.
+      - Previously the disabled-layer early-return came BEFORE the mandatory-
+        security-control check, meaning disabling any layer could bypass critical findings.
+      - Now:
+          Step 1  — Universal mandatory check (ml_service_unavailable)
+          Step 2  — Tool-layer mandatory check (RBAC, path traversal)
+          Step 3  — Critical-severity catch-all (blocks even on disabled layers)
+          Step 4  — Layer-disabled early return (only if no mandatory/critical violations)
+          Step 5  — Normal policy evaluation
+      This guarantees: configuration toggles can NEVER bypass mandatory security controls.
     """
+
     def __init__(self):
         pass
 
@@ -25,49 +53,78 @@ class PolicyEngine:
         findings = scan_response.findings
         confidence = scan_response.confidence
 
-        # Rule 0: Mandatory Security Control Invariance
-        # Configuration toggles must never bypass mandatory security controls (Tool RBAC / Path Traversal)
-        if layer == "tool":
-            if any(f.type in ["unauthorized_tool", "insufficient_permissions", "path_traversal", "unsafe_expression"] for f in findings):
-                return "BLOCK", f"Tool access violation: {findings[0].description}"
+        # ----------------------------------------------------------------
+        # Step 1: Universal mandatory check — findings that are ALWAYS
+        # blocked regardless of layer, policy, or enabled state.
+        # ----------------------------------------------------------------
+        for f in findings:
+            if f.type in MANDATORY_BLOCK_TYPES:
+                return "BLOCK", f"Mandatory security violation: {f.description}"
 
-        # If non-mandatory layer is disabled by admin policy, allow pass-through with explicit audit warning
+        # ----------------------------------------------------------------
+        # Step 2: Tool-layer mandatory authorization check.
+        # Must run BEFORE the disabled-layer check.
+        # ----------------------------------------------------------------
+        if layer == "tool":
+            for f in findings:
+                if f.type in MANDATORY_TOOL_TYPES:
+                    return "BLOCK", f"Mandatory tool security violation: {f.description}"
+
+        # ----------------------------------------------------------------
+        # Step 3: Critical-severity catch-all.
+        # Critical findings always block even if the layer is disabled.
+        # ----------------------------------------------------------------
+        has_critical = any(f.severity == "critical" for f in findings)
+        if has_critical:
+            top = next(f for f in findings if f.severity == "critical")
+            return "BLOCK", f"Critical security policy violation: {top.description}"
+
+        # ----------------------------------------------------------------
+        # Step 4: Layer-disabled early return.
+        # Reached only when no mandatory/critical violations were found.
+        # ----------------------------------------------------------------
         if not policy.get("enabled", True):
             return "PASS", f"Layer '{layer}' is administratively bypassed by policy"
 
-        # Rule 1: Tool authorization violations are always strictly blocked
+        # ----------------------------------------------------------------
+        # Step 5a: Tool layer — authorized calls pass directly.
+        # (Unauthorized calls were already blocked in Step 2.)
+        # ----------------------------------------------------------------
         if layer == "tool":
-            if any(f.type in ["unauthorized_tool", "insufficient_permissions", "path_traversal", "unsafe_expression"] for f in findings):
-                return "BLOCK", f"Tool access violation: {findings[0].description}"
             return action, reason
 
-        # Rule 2: Critical security findings always override any other condition
-        has_critical = any(f.severity == "critical" for f in findings)
-        if has_critical:
-            return "BLOCK", f"Critical security policy violation: {findings[0].description}"
-
-        # Rule 3: Output defense sanitization
+        # ----------------------------------------------------------------
+        # Step 5b: Output defense — honour the layer's own SANITIZE/BLOCK.
+        # ----------------------------------------------------------------
         if layer == "output":
             if action in ["SANITIZE", "BLOCK"]:
                 return action, reason
             return "PASS", reason
 
-        # Rule 4: Borderline and probabilistic threats across layers
+        # ----------------------------------------------------------------
+        # Step 5c: Probabilistic / borderline threats for input, memory, retrieval.
+        # ----------------------------------------------------------------
         threshold = policy.get("threshold", 0.75)
         if scan_response.prediction == "malicious":
             if confidence >= threshold:
                 return "BLOCK", reason
             else:
                 default_act = policy.get("default_action", "BLOCK")
-                # Ensure reason cleanly matches the final action taken
                 if default_act == "BLOCK":
-                    return "BLOCK", f"Security policy blocked request: Risk score ({confidence:.2f}) evaluated under layer policy (threshold: {threshold:.2f})"
+                    return "BLOCK", (
+                        f"Security policy blocked request: Risk score ({confidence:.2f}) "
+                        f"evaluated under layer policy (threshold: {threshold:.2f})"
+                    )
                 elif default_act == "SANITIZE":
-                    # Only report sanitization if content can actually be sanitized/quarantined
                     if layer == "output" or scan_response.sanitized_content is not None:
-                        return "SANITIZE", f"Content sanitized: Risk score ({confidence:.2f}) required sanitization/redaction"
+                        return "SANITIZE", (
+                            f"Content sanitized: Risk score ({confidence:.2f}) required sanitization/redaction"
+                        )
                     else:
-                        return "SANITIZE", f"Quarantine action applied: Content held for review under policy default ({confidence:.2f} < {threshold:.2f})"
+                        return "SANITIZE", (
+                            f"Quarantine action applied: Content held for review under policy "
+                            f"default ({confidence:.2f} < {threshold:.2f})"
+                        )
                 else:
                     return default_act, reason
 

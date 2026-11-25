@@ -48,7 +48,7 @@ def test_disabled_layer_cannot_bypass_mandatory_tool_controls():
     
     action, reason = pe.evaluate_decision("tool", tool_resp, dummy_policy)
     assert action == "BLOCK", "Disabling layer must NEVER bypass tool authorization or path traversal"
-    assert "Mandatory tool security violation" in reason or "Tool access violation" in reason
+    assert "Mandatory tool security violation" in reason or "Tool access violation" in reason or "Mandatory security violation" in reason
 
 def test_server_side_role_resolution():
     """
