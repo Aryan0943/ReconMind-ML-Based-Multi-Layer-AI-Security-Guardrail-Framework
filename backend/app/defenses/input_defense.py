@@ -51,9 +51,20 @@ class InputDefense(BaseDefense):
 
         # 3. Machine Learning Detection
         ml_res = ml_engine.predict(text)
-        is_ml_malicious = ml_res.get("prediction") == "malicious"
-        ml_confidence = ml_res.get("confidence", 0.0)
-        ml_category = ml_res.get("category", "benign")
+        if not ml_res.get("available", True):
+            # Fail closed: If ML engine is unavailable, do NOT fail-open
+            findings.append(Finding(
+                type="ml_service_unavailable",
+                description="ML Threat Detection Engine is unavailable. Enforcing fail-closed policy.",
+                severity="critical"
+            ))
+            is_ml_malicious = True
+            ml_confidence = 1.0
+            ml_category = "service_unavailable_fail_closed"
+        else:
+            is_ml_malicious = ml_res.get("prediction") == "malicious"
+            ml_confidence = ml_res.get("confidence", 0.0)
+            ml_category = ml_res.get("category", "benign")
 
         if is_ml_malicious and ml_confidence >= self.threshold:
             findings.append(Finding(

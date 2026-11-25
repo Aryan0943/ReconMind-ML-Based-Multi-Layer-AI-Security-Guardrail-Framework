@@ -16,16 +16,25 @@ class RetrievalDefense(BaseDefense):
         super().__init__(layer_name="retrieval", threshold=threshold)
 
     def _chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:
+        # Validate chunking parameters to strictly prevent DoS infinite loops
+        chunk_size = max(10, min(10000, int(chunk_size)))
+        # Guard: overlap must be strictly less than chunk_size
+        if overlap >= chunk_size:
+            overlap = max(0, chunk_size // 2)
+        else:
+            overlap = max(0, int(overlap))
+
         words = text.split()
         if len(words) <= chunk_size:
             return [text]
             
         chunks = []
         i = 0
+        step = max(1, chunk_size - overlap)
         while i < len(words):
             chunk = " ".join(words[i : i + chunk_size])
             chunks.append(chunk)
-            i += (chunk_size - overlap)
+            i += step
         return chunks
 
     def inspect(self, content: Any, **kwargs) -> SecurityScanResponse:

@@ -83,10 +83,23 @@ class DefenseManager:
 
         # 3. Log security event to database
         if log_event:
-            # Mask out any sensitive contents if output layer
-            logged_input = "[REDACTED_SENSITIVE_CONTENT]" if layer_name == "output" else (
-                str(content)[:500] if not isinstance(content, dict) else str(content)
-            )
+            # Privacy-Preserving Logging: Mask out sensitive credentials, API keys, and parameter values
+            from app.security.sensitive_data import scan_and_redact_sensitive_data
+            if layer_name == "output":
+                logged_input = "[REDACTED_SENSITIVE_CONTENT]"
+            elif isinstance(content, dict):
+                # Mask parameter values to prevent secrets or path leaks in tool logs
+                safe_dict = {}
+                for k, v in content.items():
+                    if k == "parameters" and isinstance(v, dict):
+                        safe_dict[k] = {param_k: "[PARAM_VALUE_MASKED]" for param_k in v}
+                    else:
+                        safe_dict[k] = v
+                logged_input = str(safe_dict)[:500]
+            else:
+                raw_str = str(content)[:500]
+                _, redacted_preview, _ = scan_and_redact_sensitive_data(raw_str, redact=True)
+                logged_input = redacted_preview
             
             event_record = {
                 "event_id": scan_response.event_id,

@@ -1,4 +1,63 @@
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Optional
+import ast
+import operator
+from pathlib import Path
+
+# Safe mathematical operator map for AST evaluation
+SAFE_OPERATORS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+}
+
+def safe_ast_eval(node, max_magnitude=1000000000, current_depth=0, max_depth=10):
+    """
+    Safely evaluates mathematical AST nodes without invoking Python eval() or builtins.
+    Guards against exponential blowups, excessive recursion, and code execution.
+    """
+    if current_depth > max_depth:
+        raise ValueError("Expression nesting depth exceeds limit (DoS protection)")
+
+    if isinstance(node, ast.Constant):
+        if not isinstance(node.value, (int, float)):
+            raise ValueError(f"Disallowed constant type: {type(node.value)}")
+        if abs(node.value) > max_magnitude:
+            raise ValueError("Numeric literal exceeds safety magnitude limit")
+        return node.value
+
+    elif isinstance(node, ast.BinOp):
+        op_type = type(node.op)
+        if op_type not in SAFE_OPERATORS:
+            raise ValueError(f"Unsupported math operator: {op_type.__name__}")
+        
+        left = safe_ast_eval(node.left, max_magnitude, current_depth + 1, max_depth)
+        right = safe_ast_eval(node.right, max_magnitude, current_depth + 1, max_depth)
+
+        # Resource safety boundary: guard against exponential memory explosion
+        if op_type is ast.Pow:
+            if right > 100 or right < -100 or left > 10000:
+                raise ValueError("Exponentiation magnitude exceeds safe limits (DoS protection)")
+
+        res = SAFE_OPERATORS[op_type](left, right)
+        if isinstance(res, (int, float)) and abs(res) > max_magnitude:
+            raise ValueError("Calculation result exceeds allowable magnitude limit")
+        return res
+
+    elif isinstance(node, ast.UnaryOp):
+        op_type = type(node.op)
+        if op_type not in SAFE_OPERATORS:
+            raise ValueError(f"Unsupported unary operator: {op_type.__name__}")
+        operand = safe_ast_eval(node.operand, max_magnitude, current_depth + 1, max_depth)
+        return SAFE_OPERATORS[op_type](operand)
+
+    else:
+        raise ValueError(f"Disallowed expression element: {type(node).__name__}")
 
 # Controlled Tool Specifications
 # Supported tools:
@@ -81,22 +140,27 @@ def validate_tool_request(
 
     # 4. Tool-Specific Semantic Validation
     if tool_name == "calculator":
-        expr = str(parameters.get("expression", ""))
-        # Strict allowlist of safe math characters
-        import re
-        if not re.match(r"^[\d\s\+\-\*\/\(\)\.\%]+$", expr):
+        expr = str(parameters.get("expression", "")).strip()
+        if len(expr) > 200:
+            findings.append({
+                "type": "expression_too_long",
+                "description": "Mathematical expression exceeds 200 character limit",
+                "severity": "high"
+            })
+            return False, "Expression length exceeds limit", findings, {}
+
+        try:
+            # Parse AST and evaluate safely without eval()
+            parsed = ast.parse(expr, mode='eval')
+            result = safe_ast_eval(parsed.body)
+            return True, "Calculator evaluated successfully", findings, {"result": result}
+        except Exception as e:
             findings.append({
                 "type": "unsafe_expression",
-                "description": "Expression contains prohibited characters (possible code injection attempt)",
+                "description": f"Mathematical evaluation rejected: {str(e)}",
                 "severity": "critical"
             })
-            return False, "Dangerous math expression rejected", findings, {}
-        try:
-            # Safe eval with empty globals/locals
-            res = eval(expr, {"__builtins__": None}, {})
-            return True, "Calculator evaluated successfully", findings, {"result": res}
-        except Exception as e:
-            return False, f"Math calculation failed: {str(e)}", findings, {}
+            return False, f"Dangerous or invalid math expression rejected: {str(e)}", findings, {}
 
     elif tool_name == "file_listing":
         dir_name = str(parameters.get("directory", "")).strip().replace("\\", "/").strip("/")

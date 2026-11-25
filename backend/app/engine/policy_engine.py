@@ -20,14 +20,20 @@ class PolicyEngine:
         Evaluates the scan response against active policy.
         Returns: (final_action, final_reason)
         """
-        # If layer is disabled by admin policy, allow pass-through with explicit audit warning
-        if not policy.get("enabled", True):
-            return "PASS", f"Layer '{layer}' is administratively bypassed by policy"
-
         action = scan_response.action
         reason = scan_response.reason
         findings = scan_response.findings
         confidence = scan_response.confidence
+
+        # Rule 0: Mandatory Security Control Invariance
+        # Configuration toggles must never bypass mandatory security controls (Tool RBAC / Path Traversal)
+        if layer == "tool":
+            if any(f.type in ["unauthorized_tool", "insufficient_permissions", "path_traversal", "unsafe_expression"] for f in findings):
+                return "BLOCK", f"Tool access violation: {findings[0].description}"
+
+        # If non-mandatory layer is disabled by admin policy, allow pass-through with explicit audit warning
+        if not policy.get("enabled", True):
+            return "PASS", f"Layer '{layer}' is administratively bypassed by policy"
 
         # Rule 1: Tool authorization violations are always strictly blocked
         if layer == "tool":
