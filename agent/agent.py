@@ -38,25 +38,26 @@ class ReconMindGuardedAgent:
         # STEP 1: LAYER 1 — INPUT DEFENSE
         # -------------------------------------------------------------
         input_scan = defense_manager.coordinate_scan(layer_name="input", content=user_prompt, request_id=request_id)
-        step1 = AgentExecutionStep(
-            step_number=step_idx,
-            layer="input",
-            action_type="inspect_user_prompt",
-            input_data=user_prompt,
-            verdict=input_scan.action,
-            reason=input_scan.reason,
-            details={
-                "prediction": input_scan.prediction,
-                "category": input_scan.category,
-                "confidence": input_scan.confidence,
-                "latency_ms": input_scan.latency_ms
-            },
-            blocked=(input_scan.action == "BLOCK")
-        )
-        steps.append(step1)
-        step_idx += 1
-
-        if input_scan.action == "BLOCK":
+        effective_prompt = user_prompt
+        
+        # Consistent decision contract enforcement
+        if input_scan.action in ["BLOCK", "QUARANTINE"]:
+            step1 = AgentExecutionStep(
+                step_number=step_idx,
+                layer="input",
+                action_type="inspect_user_prompt",
+                input_data=user_prompt,
+                verdict=input_scan.action,
+                reason=input_scan.reason,
+                details={
+                    "prediction": input_scan.prediction,
+                    "category": input_scan.category,
+                    "confidence": input_scan.confidence,
+                    "latency_ms": input_scan.latency_ms
+                },
+                blocked=True
+            )
+            steps.append(step1)
             total_time = (time.perf_counter() - start_time) * 1000.0
             return AgentWorkflowResult(
                 scenario_id=scenario_id,
@@ -69,13 +70,36 @@ class ReconMindGuardedAgent:
                 tool_calls_attempted=[],
                 execution_time_ms=total_time
             )
+        elif input_scan.action == "SANITIZE":
+            # Sanitize contract: Execute ONLY sanitized/transformed content, never original unsafe prompt
+            effective_prompt = input_scan.sanitized_content or "[SANITIZED_PROMPT_SAFE_SUBSTITUTE]"
+            
+        step1 = AgentExecutionStep(
+            step_number=step_idx,
+            layer="input",
+            action_type="inspect_user_prompt",
+            input_data=effective_prompt,
+            verdict=input_scan.action,
+            reason=input_scan.reason,
+            details={
+                "prediction": input_scan.prediction,
+                "category": input_scan.category,
+                "confidence": input_scan.confidence,
+                "latency_ms": input_scan.latency_ms
+            },
+            blocked=False
+        )
+        steps.append(step1)
+        step_idx += 1
 
         # -------------------------------------------------------------
         # STEP 2: LAYER 2 — MEMORY DEFENSE
         # -------------------------------------------------------------
         if proposed_memory_update:
             mem_scan = defense_manager.coordinate_scan(layer_name="memory", content=proposed_memory_update, request_id=request_id)
-            mem_blocked = (mem_scan.action == "BLOCK")
+            # Memory isolation contract: Only PASS can be directly committed.
+            # SANITIZE, QUARANTINE, and BLOCK must never be added to active memory uninspected.
+            mem_blocked = (mem_scan.action in ["BLOCK", "QUARANTINE", "SANITIZE"])
             step2 = AgentExecutionStep(
                 step_number=step_idx,
                 layer="memory",
@@ -101,7 +125,7 @@ class ReconMindGuardedAgent:
                     "status": "APPROVED"
                 })
             else:
-                # Quarantined: strictly blocked from context
+                # Quarantined / Sanitized: strictly excluded from active LLM context
                 pass
 
         # -------------------------------------------------------------
@@ -112,7 +136,8 @@ class ReconMindGuardedAgent:
             for doc in candidate_documents:
                 doc_text = doc.get("content") or doc.get("text") or ""
                 ret_scan = defense_manager.coordinate_scan(layer_name="retrieval", content=doc_text, request_id=request_id)
-                doc_blocked = (ret_scan.action in ["BLOCK", "SANITIZE"])
+                # Retrieval contract: BLOCK, QUARANTINE, and SANITIZE documents are excluded from context
+                doc_blocked = (ret_scan.action in ["BLOCK", "QUARANTINE", "SANITIZE"])
                 
                 step3 = AgentExecutionStep(
                     step_number=step_idx,
@@ -141,7 +166,7 @@ class ReconMindGuardedAgent:
         # STEP 4: MOCK LLM DECISION & LAYER 4 — TOOL DEFENSE
         # -------------------------------------------------------------
         llm_output = self.llm.generate(
-            prompt=user_prompt,
+            prompt=effective_prompt,
             memory=self.conversation_memory,
             retrieved_docs=usable_docs
         )
