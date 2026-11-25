@@ -1,16 +1,35 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from agent.agent_workflow import run_scenario, list_all_scenarios, SCENARIOS
 from agent.agent import ReconMindGuardedAgent
+import os
 
 router = APIRouter(prefix="/agent", tags=["Simulated AI Agent"])
+
+# Server-Side Identity and Role Mapping
+# Roles MUST be derived from server-side verified credentials, never trusted from client payload
+SERVER_API_KEY_ROLES = {
+    "reconmind-admin-secret-key-2026": "admin",
+    "reconmind-analyst-secret-key-2026": "analyst",
+}
+
+def resolve_server_side_role(x_api_key: Optional[str] = None) -> str:
+    """
+    Derives role from authenticated server-side identity.
+    Defaults to 'standard_user' if unauthenticated or non-admin token.
+    Never allows client to claim privileged roles arbitrarily.
+    """
+    if x_api_key and x_api_key in SERVER_API_KEY_ROLES:
+        return SERVER_API_KEY_ROLES[x_api_key]
+    return "standard_user"
 
 class CustomAgentRunRequest(BaseModel):
     user_prompt: str = Field(..., description="Prompt to submit to guarded agent")
     proposed_memory_update: Optional[str] = Field(None, description="Optional persistent memory directive")
     candidate_documents: Optional[List[Dict[str, Any]]] = Field(None, description="Optional RAG passages")
-    user_role: str = Field("standard_user", description="Caller role for tool authorization")
+    # user_role is optional in payload and will NEVER elevate privileges above server-side identity
+    user_role: Optional[str] = Field(None, description="Optional client-requested role (clamped to authenticated server-side role)")
 
 @router.get("/scenarios")
 def get_scenarios():
@@ -53,10 +72,26 @@ def execute_scenario(scenario_key: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/execute")
-def execute_custom_agent(request: CustomAgentRunRequest):
+def execute_custom_agent(
+    request: CustomAgentRunRequest,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key")
+):
     """Executes a custom user prompt through all 5 ReconMind defense layers in the simulated agent."""
     try:
-        agent = ReconMindGuardedAgent(user_role=request.user_role)
+        # Server-side authentication and role resolution
+        authenticated_role = resolve_server_side_role(x_api_key)
+        
+        # Security invariant: Standard users cannot claim administrative access via body
+        if request.user_role and request.user_role in ["admin", "analyst"]:
+            if authenticated_role != request.user_role:
+                # Client attempted unauthenticated privilege elevation
+                effective_role = "standard_user"
+            else:
+                effective_role = authenticated_role
+        else:
+            effective_role = authenticated_role
+
+        agent = ReconMindGuardedAgent(user_role=effective_role)
         result = agent.execute_request(
             user_prompt=request.user_prompt,
             proposed_memory_update=request.proposed_memory_update,
