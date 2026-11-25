@@ -126,6 +126,15 @@ def test_policies_get_and_update():
     assert get_resp.status_code == 200
     assert "policies" in get_resp.json()
 
-    put_resp = client.put("/api/v1/policies", json={"layer": "input", "threshold": 0.82})
+    # Verify unauthenticated PUT is rejected with 403 Forbidden
+    unauth_resp = client.put("/api/v1/policies", json={"layer": "input", "threshold": 0.82})
+    assert unauth_resp.status_code == 403
+
+    # Authenticated PUT with X-API-Key succeeds
+    put_resp = client.put(
+        "/api/v1/policies",
+        json={"layer": "input", "threshold": 0.82},
+        headers={"X-API-Key": "reconmind-admin-secret-key-2026"}
+    )
     assert put_resp.status_code == 200
     assert put_resp.json()["policy"]["threshold"] == 0.82
