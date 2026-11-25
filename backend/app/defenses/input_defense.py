@@ -67,18 +67,25 @@ class InputDefense(BaseDefense):
         # High-risk deterministic rules override benign ML predictions
         critical_rule = any(f.severity == "critical" for f in findings)
         high_rule = any(f.severity == "high" for f in findings)
+        rule_threat_type = findings[0].type if findings else None
         
         if critical_rule or (is_ml_malicious and ml_confidence >= self.threshold) or (high_rule and is_ml_malicious):
             action = "BLOCK"
             prediction = "malicious"
-            category = ml_category if ml_category != "benign" else "direct_injection"
+            if rule_threat_type in ["privilege_escalation", "instruction_override", "jailbreak_attempt", "system_extraction"]:
+                category = rule_threat_type
+            else:
+                category = ml_category if ml_category != "benign" else "direct_injection"
             reason = f"Security threat blocked: {findings[0].description if findings else 'Policy violation'}"
             confidence = max(ml_confidence, 0.95 if critical_rule else 0.85)
         elif high_rule or (is_ml_malicious and ml_confidence >= (self.threshold - 0.15)):
             # Borderline or medium severity rule
             action = "SANITIZE"
             prediction = "malicious"
-            category = ml_category if ml_category != "benign" else "direct_injection"
+            if rule_threat_type in ["privilege_escalation", "instruction_override", "jailbreak_attempt", "system_extraction"]:
+                category = rule_threat_type
+            else:
+                category = ml_category if ml_category != "benign" else "direct_injection"
             reason = "Suspicious prompt detected; sanitized execution required"
             confidence = ml_confidence
         else:

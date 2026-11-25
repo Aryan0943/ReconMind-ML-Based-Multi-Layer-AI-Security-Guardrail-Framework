@@ -28,6 +28,7 @@ def scan_user_input(req: InputScanRequest):
             layer_name="input",
             content=req.text,
             log_event=True,
+            request_id=req.request_id,
             metadata=req.metadata
         )
     except Exception as e:
@@ -45,6 +46,7 @@ def scan_memory_entry(req: MemoryScanRequest):
             layer_name="memory",
             content=req.content,
             log_event=True,
+            request_id=req.request_id,
             session_id=req.session_id,
             user_id=req.user_id,
             metadata=req.metadata
@@ -96,6 +98,7 @@ def scan_retrieval_text(req: RetrievalScanRequest):
             layer_name="retrieval",
             content=req.content,
             log_event=True,
+            request_id=req.request_id,
             chunk_size=req.chunk_size,
             chunk_overlap=req.chunk_overlap
         )
@@ -118,6 +121,7 @@ def scan_tool_request(req: ToolScanRequest):
                 "parameters": req.parameters
             },
             log_event=True,
+            request_id=req.request_id,
             session_id=req.session_id
         )
     except Exception as e:
@@ -135,6 +139,7 @@ def scan_ai_output(req: OutputScanRequest):
             layer_name="output",
             content=req.text,
             log_event=True,
+            request_id=req.request_id,
             redact=req.redact,
             metadata=req.metadata
         )

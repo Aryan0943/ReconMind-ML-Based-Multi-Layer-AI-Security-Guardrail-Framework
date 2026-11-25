@@ -51,6 +51,7 @@ class DefenseManager:
         layer_name: str,
         content: Any,
         log_event: bool = True,
+        request_id: Optional[str] = None,
         **kwargs
     ) -> SecurityScanResponse:
         """
@@ -64,6 +65,8 @@ class DefenseManager:
         
         # 1. Execute layer inspection
         scan_response = defense_layer.inspect(content, **kwargs)
+        if request_id:
+            scan_response.request_id = request_id
 
         # 2. Apply centralized policy engine
         policies = db_manager.get_policies()
@@ -87,6 +90,7 @@ class DefenseManager:
             
             event_record = {
                 "event_id": scan_response.event_id,
+                "request_id": scan_response.request_id or scan_response.event_id,
                 "timestamp": scan_response.timestamp,
                 "layer": scan_response.layer,
                 "input_preview": logged_input,

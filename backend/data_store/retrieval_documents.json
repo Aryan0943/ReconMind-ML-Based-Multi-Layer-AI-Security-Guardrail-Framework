@@ -1,5 +1,79 @@
 [
   {
+    "document_id": "doc_14bac480ceed",
+    "filename": "malicious_test.txt",
+    "total_chunks": 1,
+    "suspicious_chunks": 1,
+    "overall_action": "QUARANTINE",
+    "is_active_for_retrieval": false,
+    "quarantined": true,
+    "timestamp": "2026-11-25T05:19:17.747417+00:00"
+  },
+  {
+    "document_id": "doc_malicious_023194",
+    "filename": "poisoned_resume_injection.pdf",
+    "total_chunks": 4,
+    "suspicious_chunks": 2,
+    "overall_action": "BLOCK",
+    "is_active_for_retrieval": false
+  },
+  {
+    "document_id": "doc_clean_5b27e4",
+    "filename": "annual_earnings_clean.pdf",
+    "total_chunks": 5,
+    "suspicious_chunks": 0,
+    "overall_action": "PASS",
+    "is_active_for_retrieval": true
+  },
+  {
+    "document_id": "doc_malicious_47b033",
+    "filename": "poisoned_resume_injection.pdf",
+    "total_chunks": 4,
+    "suspicious_chunks": 2,
+    "overall_action": "BLOCK",
+    "is_active_for_retrieval": false
+  },
+  {
+    "document_id": "doc_clean_363b82",
+    "filename": "annual_earnings_clean.pdf",
+    "total_chunks": 5,
+    "suspicious_chunks": 0,
+    "overall_action": "PASS",
+    "is_active_for_retrieval": true
+  },
+  {
+    "document_id": "doc_malicious_a2315e",
+    "filename": "poisoned_resume_injection.pdf",
+    "total_chunks": 4,
+    "suspicious_chunks": 2,
+    "overall_action": "BLOCK",
+    "is_active_for_retrieval": false
+  },
+  {
+    "document_id": "doc_clean_9bd468",
+    "filename": "annual_earnings_clean.pdf",
+    "total_chunks": 5,
+    "suspicious_chunks": 0,
+    "overall_action": "PASS",
+    "is_active_for_retrieval": true
+  },
+  {
+    "document_id": "doc_malicious_4000df",
+    "filename": "poisoned_resume_injection.pdf",
+    "total_chunks": 4,
+    "suspicious_chunks": 2,
+    "overall_action": "BLOCK",
+    "is_active_for_retrieval": false
+  },
+  {
+    "document_id": "doc_clean_3dc111",
+    "filename": "annual_earnings_clean.pdf",
+    "total_chunks": 5,
+    "suspicious_chunks": 0,
+    "overall_action": "PASS",
+    "is_active_for_retrieval": true
+  },
+  {
     "document_id": "doc_malicious_a76aae",
     "filename": "poisoned_resume_injection.pdf",
     "total_chunks": 4,

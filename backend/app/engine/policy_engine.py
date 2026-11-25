@@ -46,14 +46,23 @@ class PolicyEngine:
                 return action, reason
             return "PASS", reason
 
-        # Rule 4: Retrieval and memory defense quarantine/sanitization
+        # Rule 4: Borderline and probabilistic threats across layers
         threshold = policy.get("threshold", 0.75)
         if scan_response.prediction == "malicious":
             if confidence >= threshold:
                 return "BLOCK", reason
             else:
-                # Borderline threat
-                default_act = policy.get("default_action", "SANITIZE")
-                return default_act, f"Threshold alert ({confidence:.2f} < {threshold:.2f}); {reason}"
+                default_act = policy.get("default_action", "BLOCK")
+                # Ensure reason cleanly matches the final action taken
+                if default_act == "BLOCK":
+                    return "BLOCK", f"Security policy blocked request: Risk score ({confidence:.2f}) evaluated under layer policy (threshold: {threshold:.2f})"
+                elif default_act == "SANITIZE":
+                    # Only report sanitization if content can actually be sanitized/quarantined
+                    if layer == "output" or scan_response.sanitized_content is not None:
+                        return "SANITIZE", f"Content sanitized: Risk score ({confidence:.2f}) required sanitization/redaction"
+                    else:
+                        return "SANITIZE", f"Quarantine action applied: Content held for review under policy default ({confidence:.2f} < {threshold:.2f})"
+                else:
+                    return default_act, reason
 
         return action, reason

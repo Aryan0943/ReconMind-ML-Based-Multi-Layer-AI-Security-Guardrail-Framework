@@ -13,7 +13,20 @@ def get_dashboard_statistics():
     """
     logs = db_manager.get_logs(limit=10000)
     
-    total_scanned = len(logs)
+    # Aggregate telemetry
+    defense_events_count = len(logs)
+    
+    # Calculate unique requests based on request_id (falling back to event_id)
+    unique_request_ids = set()
+    for l in logs:
+        req_id = l.get("request_id") or l.get("event_id")
+        if req_id:
+            unique_request_ids.add(req_id)
+            
+    unique_requests_scanned = len(unique_request_ids)
+    # total_scanned represents unique requests
+    total_scanned = unique_requests_scanned
+
     threats_detected = sum(1 for l in logs if l.get("prediction") == "malicious")
     requests_blocked = sum(1 for l in logs if l.get("action") == "BLOCK")
     requests_sanitized = sum(1 for l in logs if l.get("action") == "SANITIZE")
@@ -45,6 +58,8 @@ def get_dashboard_statistics():
 
     return DashboardStats(
         total_scanned=total_scanned,
+        unique_requests_scanned=unique_requests_scanned,
+        defense_events_count=defense_events_count,
         threats_detected=threats_detected,
         requests_blocked=requests_blocked,
         requests_sanitized=requests_sanitized,

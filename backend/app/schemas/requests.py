@@ -4,17 +4,20 @@ from pydantic import BaseModel, Field
 class InputScanRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=10000, description="User prompt text to scan")
     layer: Optional[str] = "input"
+    request_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
 class MemoryScanRequest(BaseModel):
     content: str = Field(..., min_length=1, max_length=10000, description="Memory instruction or conversation context to evaluate")
     session_id: Optional[str] = "default_session"
     user_id: Optional[str] = "default_user"
+    request_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
 class RetrievalScanRequest(BaseModel):
     content: str = Field(..., min_length=1, description="External document or retrieval passage text to inspect")
     source: Optional[str] = "uploaded_document"
+    request_id: Optional[str] = None
     chunk_size: Optional[int] = 500
     chunk_overlap: Optional[int] = 50
 
@@ -23,10 +26,12 @@ class ToolScanRequest(BaseModel):
     user_role: Optional[str] = "standard_user"
     parameters: Dict[str, Any] = Field(default_factory=dict, description="Parameters supplied to the tool")
     session_id: Optional[str] = "default_session"
+    request_id: Optional[str] = None
 
 class OutputScanRequest(BaseModel):
     text: str = Field(..., min_length=1, description="Generated AI response to inspect for sensitive leaks")
     redact: Optional[bool] = True
+    request_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
 class PolicyUpdateRequest(BaseModel):

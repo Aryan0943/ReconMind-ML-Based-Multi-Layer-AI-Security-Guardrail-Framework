@@ -10,6 +10,7 @@ class Finding(BaseModel):
 class SecurityScanResponse(BaseModel):
     success: bool = True
     event_id: str
+    request_id: Optional[str] = None
     timestamp: str
     layer: str
     prediction: str  # "benign" | "malicious"
@@ -54,6 +55,8 @@ class MemoryEntryResponse(BaseModel):
 
 class DashboardStats(BaseModel):
     total_scanned: int
+    unique_requests_scanned: Optional[int] = None
+    defense_events_count: Optional[int] = None
     threats_detected: int
     requests_blocked: int
     requests_sanitized: int

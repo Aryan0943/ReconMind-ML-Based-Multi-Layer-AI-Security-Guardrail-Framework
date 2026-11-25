@@ -28,6 +28,8 @@ class ReconMindGuardedAgent:
         candidate_documents: Optional[List[Dict[str, Any]]] = None,
         scenario_id: Optional[str] = None
     ) -> AgentWorkflowResult:
+        import uuid
+        request_id = f"req_{uuid.uuid4().hex[:12]}"
         start_time = time.perf_counter()
         steps: List[AgentExecutionStep] = []
         step_idx = 1
@@ -35,7 +37,7 @@ class ReconMindGuardedAgent:
         # -------------------------------------------------------------
         # STEP 1: LAYER 1 — INPUT DEFENSE
         # -------------------------------------------------------------
-        input_scan = defense_manager.coordinate_scan(layer_name="input", content=user_prompt)
+        input_scan = defense_manager.coordinate_scan(layer_name="input", content=user_prompt, request_id=request_id)
         step1 = AgentExecutionStep(
             step_number=step_idx,
             layer="input",
@@ -72,7 +74,7 @@ class ReconMindGuardedAgent:
         # STEP 2: LAYER 2 — MEMORY DEFENSE
         # -------------------------------------------------------------
         if proposed_memory_update:
-            mem_scan = defense_manager.coordinate_scan(layer_name="memory", content=proposed_memory_update)
+            mem_scan = defense_manager.coordinate_scan(layer_name="memory", content=proposed_memory_update, request_id=request_id)
             mem_blocked = (mem_scan.action == "BLOCK")
             step2 = AgentExecutionStep(
                 step_number=step_idx,
@@ -108,8 +110,8 @@ class ReconMindGuardedAgent:
         usable_docs = []
         if candidate_documents:
             for doc in candidate_documents:
-                doc_text = doc.get("content", "")
-                ret_scan = defense_manager.coordinate_scan(layer_name="retrieval", content=doc_text)
+                doc_text = doc.get("content") or doc.get("text") or ""
+                ret_scan = defense_manager.coordinate_scan(layer_name="retrieval", content=doc_text, request_id=request_id)
                 doc_blocked = (ret_scan.action in ["BLOCK", "SANITIZE"])
                 
                 step3 = AgentExecutionStep(
@@ -160,7 +162,8 @@ class ReconMindGuardedAgent:
                     "tool_name": tool_name,
                     "user_role": self.user_role,
                     "parameters": params
-                }
+                },
+                request_id=request_id
             )
 
             tool_blocked = (tool_scan.action == "BLOCK")
@@ -198,7 +201,7 @@ class ReconMindGuardedAgent:
         # -------------------------------------------------------------
         # STEP 5: LAYER 5 — OUTPUT DEFENSE
         # -------------------------------------------------------------
-        output_scan = defense_manager.coordinate_scan(layer_name="output", content=raw_agent_reply)
+        output_scan = defense_manager.coordinate_scan(layer_name="output", content=raw_agent_reply, request_id=request_id)
         output_blocked = (output_scan.action == "BLOCK")
         
         # Decide final delivered response
